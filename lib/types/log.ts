@@ -1,7 +1,21 @@
 // 工作日志类型定义
 
+import { AnalyzedEntryPoint } from './ai-analysis'
+
 export type LogType = 'info' | 'success' | 'error' | 'warning'
-export type LogCategory = 'validation' | 'filetree' | 'filter' | 'ai'
+export type LogCategory = 'validation' | 'filetree' | 'filter' | 'ai' | 'entrypoint' | 'subfunction' | 'recursive'
+
+// AI日志详情
+export interface AILogDetails {
+  prompt: string       // 发送给AI的提示词
+  response: string     // AI的响应内容
+  model?: string       // 使用的模型
+  tokens?: {
+    input?: number
+    output?: number
+    total?: number
+  }
+}
 
 // 日志条目
 export interface LogEntry {
@@ -11,6 +25,7 @@ export interface LogEntry {
   category: LogCategory
   message: string
   details?: LogDetails
+  aiDetails?: AILogDetails  // AI专用详情
 }
 
 // 日志详情（可展开的JSON数据）
@@ -30,6 +45,7 @@ export interface AnalyzeResponseWithLogs {
     techStack: Array<{
       name: string
       category: string
+      description?: string
       confidence: number
     }>
     entryPoints: Array<{
@@ -40,6 +56,10 @@ export interface AnalyzeResponseWithLogs {
     }>
     projectType: string
     confidence: number
+    /** 确认的入口文件 */
+    confirmedEntryPoint?: AnalyzedEntryPoint
+    /** 所有研判过的入口文件 */
+    analyzedEntryPoints?: AnalyzedEntryPoint[]
   }
   logs?: LogEntry[]
 }
@@ -58,4 +78,7 @@ export const LOG_CATEGORY_CONFIG: Record<LogCategory, { label: string }> = {
   filetree: { label: '文件树' },
   filter: { label: '过滤' },
   ai: { label: 'AI分析' },
+  entrypoint: { label: '入口研判' },
+  subfunction: { label: '子函数分析' },
+  recursive: { label: '递归分析' },
 }

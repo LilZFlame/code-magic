@@ -11,25 +11,30 @@ import {
   Loader2,
   RefreshCw,
   AlertCircle,
+  GitBranch,
+  Network,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import {
   AIAnalysisResult,
   TechStackTag,
   EntryPoint,
+  AnalyzedEntryPoint,
   PROJECT_TYPE_LABELS,
   CATEGORY_CONFIG,
 } from '@/lib/types/ai-analysis'
 import { LogEntry } from '@/lib/types/log'
 import { useLogStore } from '@/stores/log-store'
+import { useAnalysisStore } from '@/stores/analysis-store'
 
 interface ProjectAnalysisProps {
   owner: string
   repo: string
   onEntryClick?: (path: string) => void
+  onAnalyzeSubFunctions?: (entryPoint: AnalyzedEntryPoint, primaryLanguage: string, projectType: string) => void
 }
 
-export function ProjectAnalysis({ owner, repo, onEntryClick }: ProjectAnalysisProps) {
+export function ProjectAnalysis({ owner, repo, onEntryClick, onAnalyzeSubFunctions }: ProjectAnalysisProps) {
   const [analysis, setAnalysis] = useState<AIAnalysisResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,10 +43,19 @@ export function ProjectAnalysis({ owner, repo, onEntryClick }: ProjectAnalysisPr
   )
 
   const { addLogs, clearLogs } = useLogStore()
+  const { isAnalyzing, getProjectAnalysis, setProjectAnalysis } = useAnalysisStore()
 
   const fetchAnalysis = async () => {
     if (!owner || !repo) return
 
+    // 先检查缓存
+    const cached = getProjectAnalysis(owner, repo)
+    if (cached) {
+      setAnalysis(cached)
+      return
+    }
+
+    // 缓存不存在，发送 API 请求
     setIsLoading(true)
     setError(null)
     clearLogs()
@@ -61,6 +75,11 @@ export function ProjectAnalysis({ owner, repo, onEntryClick }: ProjectAnalysisPr
       }
 
       setAnalysis(data)
+
+      // 缓存分析结果
+      if (data.status === 'success') {
+        setProjectAnalysis(owner, repo, data)
+      }
     } catch (err) {
       setError('分析失败')
       setAnalysis(null)
@@ -122,7 +141,7 @@ export function ProjectAnalysis({ owner, repo, onEntryClick }: ProjectAnalysisPr
   const { data } = analysis
 
   return (
-    <div className="flex flex-col text-sm">
+    <div className="flex flex-col text-sm h-full overflow-auto">
       {/* 项目类型 */}
       <div className="px-3 py-2 bg-gray-100 dark:bg-gray-800 mx-2 rounded-lg mb-2">
         <div className="flex items-center gap-2">
@@ -175,14 +194,70 @@ export function ProjectAnalysis({ owner, repo, onEntryClick }: ProjectAnalysisPr
         expanded={expandedSections.has('entryPoints')}
         onToggle={() => toggleSection('entryPoints')}
       >
-        <div className="space-y-1">
-          {data.entryPoints.map((entry, index) => (
-            <EntryItem
-              key={`${entry.path}-${index}`}
-              entry={entry}
-              onClick={() => onEntryClick?.(entry.path)}
-            />
-          ))}
+        <div className="space-y-2">
+          {/* 确认的入口（高亮显示） */}
+          {data.confirmedEntryPoint && (
+            <div className="p-2 rounded-lg border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20">
+              <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 mb-1">
+                <span className="font-medium">✓ 已确认入口</span>
+              </div>
+              <EntryItem
+                entry={data.confirmedEntryPoint}
+                onClick={() => onEntryClick?.(data.confirmedEntryPoint!.path)}
+                isConfirmed
+              />
+              {data.confirmedEntryPoint.analysisData?.startupHint && (
+                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 pl-1">
+                  💡 {data.confirmedEntryPoint.analysisData.startupHint}
+                </p>
+              )}
+              {/* 分析子函数按钮 */}
+              {onAnalyzeSubFunctions && (
+                <button
+                  onClick={() => onAnalyzeSubFunctions(
+                    data.confirmedEntryPoint!,
+                    data.primaryLanguage,
+                    data.projectType
+                  )}
+                  disabled={isAnalyzing}
+                  className="mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md
+                    text-xs font-medium text-white bg-primary-500 hover:bg-primary-600
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    transition-colors duration-200"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <GitBranch className="w-3 h-3" />
+                  )}
+                  {isAnalyzing ? '分析中...' : '分析子函数'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 其他候选入口 */}
+          {data.analyzedEntryPoints
+            ?.filter((e) => e.path !== data.confirmedEntryPoint?.path)
+            .map((entry, index) => (
+              <EntryItem
+                key={`analyzed-${entry.path}-${index}`}
+                entry={entry}
+                onClick={() => onEntryClick?.(entry.path)}
+                confidence={entry.analysisData?.confidence}
+              />
+            ))}
+
+          {/* 兼容旧数据：没有研判结果时显示原始列表 */}
+          {!data.confirmedEntryPoint &&
+            !data.analyzedEntryPoints &&
+            data.entryPoints.map((entry, index) => (
+              <EntryItem
+                key={`entry-${entry.path}-${index}`}
+                entry={entry}
+                onClick={() => onEntryClick?.(entry.path)}
+              />
+            ))}
         </div>
       </Section>
     </div>
@@ -280,22 +355,41 @@ function TechTag({ tag }: { tag: TechStackTag }) {
   )
 }
 
-// 入口文件项
-function EntryItem({ entry, onClick }: { entry: EntryPoint; onClick?: () => void }) {
+// 入口文件项 - 卡片样式
+function EntryItem({
+  entry,
+  onClick,
+  isConfirmed,
+  confidence,
+}: {
+  entry: EntryPoint
+  onClick?: () => void
+  isConfirmed?: boolean
+  confidence?: number
+}) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        'w-full text-left px-2 py-1.5 rounded text-xs',
-        'hover:bg-gray-100 dark:hover:bg-gray-800',
-        'flex flex-col gap-0.5',
+        'w-full text-left p-2 rounded-lg text-xs',
+        isConfirmed
+          ? 'border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10'
+          : 'border border-[var(--color-border)] bg-[var(--color-bg-secondary)]',
+        'hover:shadow-md hover:border-primary-300 dark:hover:border-primary-600',
+        'transition-all duration-200',
+        'flex flex-col gap-1',
         onClick && 'cursor-pointer'
       )}
     >
-      <span className="font-mono text-primary-600 dark:text-primary-400 truncate">
-        {entry.path}
-      </span>
-      <span className="text-gray-500 dark:text-gray-400 truncate">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-primary-600 dark:text-primary-400 truncate">
+          {entry.path}
+        </span>
+        {confidence !== undefined && !isConfirmed && (
+          <span className="text-[10px] text-gray-400 ml-1">{Math.round(confidence * 100)}%</span>
+        )}
+      </div>
+      <span className="text-[var(--color-text-muted)] truncate text-[11px]">
         {entry.description}
       </span>
     </button>

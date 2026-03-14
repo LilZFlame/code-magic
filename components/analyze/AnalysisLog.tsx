@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Terminal, Copy, Check, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronRight, Terminal, Copy, Check, Trash2, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { LogEntry, LOG_TYPE_CONFIG, LOG_CATEGORY_CONFIG } from '@/lib/types/log'
 import { formatJsonForDisplay } from '@/lib/utils/log-utils'
@@ -35,22 +35,22 @@ export function AnalysisLog({
   const errorCount = entries.filter((e) => e.type === 'error').length
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
+    <div className="border-b border-[var(--color-border)]">
       {/* 标题栏 */}
       <button
         onClick={onTogglePanel}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--color-bg-tertiary)] transition-colors"
       >
         <div className="flex items-center gap-2">
           {isExpanded ? (
-            <ChevronDown className="w-3 h-3 text-gray-400" />
+            <ChevronDown className="w-3 h-3 text-[var(--color-text-muted)]" />
           ) : (
-            <ChevronRight className="w-3 h-3 text-gray-400" />
+            <ChevronRight className="w-3 h-3 text-[var(--color-text-muted)]" />
           )}
-          <Terminal className="w-4 h-4 text-gray-500" />
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">工作日志</span>
+          <Terminal className="w-4 h-4 text-[var(--color-text-secondary)]" />
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">工作日志</span>
           {entries.length > 0 && (
-            <span className="text-xs text-gray-400">({entries.length})</span>
+            <span className="text-xs text-[var(--color-text-muted)]">({entries.length})</span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -67,9 +67,9 @@ export function AnalysisLog({
       {isExpanded && (
         <div className="px-3 pb-2">
           {entries.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-2">暂无日志</p>
+            <p className="text-xs text-[var(--color-text-muted)] text-center py-2">暂无日志</p>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {entries.map((entry) => (
                 <LogItem
                   key={entry.id}
@@ -87,7 +87,7 @@ export function AnalysisLog({
           {entries.length > 0 && (
             <button
               onClick={onClear}
-              className="mt-2 w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex items-center justify-center gap-1 py-1"
+              className="mt-2 w-full text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] flex items-center justify-center gap-1 py-1 transition-colors"
             >
               <Trash2 className="w-3 h-3" />
               清空日志
@@ -99,7 +99,7 @@ export function AnalysisLog({
   )
 }
 
-// 单条日志项
+// 单条日志项 - 卡片样式
 function LogItem({
   entry,
   isJsonExpanded,
@@ -115,6 +115,7 @@ function LogItem({
 }) {
   const typeConfig = LOG_TYPE_CONFIG[entry.type]
   const categoryConfig = LOG_CATEGORY_CONFIG[entry.category]
+  const isAI = entry.category === 'ai' && entry.aiDetails
 
   // 格式化时间
   const time = new Date(entry.timestamp).toLocaleTimeString('zh-CN', {
@@ -124,27 +125,65 @@ function LogItem({
   })
 
   return (
-    <div className="text-xs">
+    <div className={cn(
+      'rounded-lg border p-2 text-xs transition-colors',
+      'border-[var(--color-border)] bg-[var(--color-bg-secondary)]',
+      isAI && 'border-cyan-500/30 bg-gradient-to-r from-cyan-500/5 to-transparent'
+    )}>
       {/* 日志标题行 */}
       <div className="flex items-start gap-1.5">
+        {isAI && <Sparkles className="w-3 h-3 text-cyan-400 flex-shrink-0" />}
         <span className={cn('flex-shrink-0', typeConfig.color)}>
           {typeConfig.icon}
         </span>
         <div className="flex-1 min-w-0">
-          <span className="text-gray-400">[{time}]</span>
-          <span className="text-gray-500 ml-1">[{categoryConfig.label}]</span>
-          <span className="text-gray-700 dark:text-gray-300 ml-1">{entry.message}</span>
+          <span className="text-[var(--color-text-muted)]">[{time}]</span>
+          <span className="text-[var(--color-text-secondary)] ml-1">[{categoryConfig.label}]</span>
+          <span className="text-[var(--color-text-primary)] ml-1">{entry.message}</span>
         </div>
       </div>
 
+      {/* AI详情 - 提示词和响应 */}
+      {entry.aiDetails && (
+        <div className="mt-2 space-y-2">
+          {/* 提示词 */}
+          <div className="rounded bg-[var(--color-bg-tertiary)] p-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-cyan-400 font-medium">提示词</span>
+              {entry.aiDetails.model && (
+                <span className="text-[10px] text-[var(--color-text-muted)]">{entry.aiDetails.model}</span>
+              )}
+            </div>
+            <pre className="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap break-all max-h-24 overflow-auto">
+              {entry.aiDetails.prompt}
+            </pre>
+          </div>
+
+          {/* 响应 */}
+          <div className="rounded bg-[var(--color-bg-tertiary)] p-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-green-400 font-medium">响应</span>
+              {entry.aiDetails.tokens && (
+                <span className="text-[10px] text-[var(--color-text-muted)]">
+                  {entry.aiDetails.tokens.total || entry.aiDetails.tokens.input || 0} tokens
+                </span>
+              )}
+            </div>
+            <pre className="text-[10px] text-[var(--color-text-secondary)] whitespace-pre-wrap break-all max-h-32 overflow-auto">
+              {entry.aiDetails.response}
+            </pre>
+          </div>
+        </div>
+      )}
+
       {/* 可展开的JSON详情 */}
-      {entry.details && (
-        <div className="ml-5 mt-1">
+      {entry.details && !entry.aiDetails && (
+        <div className="ml-4 mt-1">
           <button
             onClick={onToggleJson}
             className="text-primary-500 hover:text-primary-600 text-xs flex items-center gap-1"
           >
-            {isJsonExpanded ? '收起' : '展开'}JSON
+            {isJsonExpanded ? '收起' : '展开'}详情
             {isJsonExpanded ? (
               <ChevronDown className="w-3 h-3" />
             ) : (

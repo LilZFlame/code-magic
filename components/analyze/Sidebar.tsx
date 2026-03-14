@@ -1,22 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Loader2 } from 'lucide-react'
+import { Search, Loader2, History } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { parseGitHubUrl } from '@/lib/github/parser'
 import { ProjectAnalysis } from './ProjectAnalysis'
 import { AnalysisLog } from './AnalysisLog'
 import { useLogStore } from '@/stores/log-store'
+import { AnalyzedEntryPoint } from '@/lib/types/ai-analysis'
 
 interface SidebarProps {
   owner: string
   repo: string
   onRepoChange: (owner: string, repo: string) => void
   onEntryClick?: (path: string) => void
+  onAnalyzeSubFunctions?: (entryPoint: AnalyzedEntryPoint, primaryLanguage: string, projectType: string) => void
 }
 
-export function Sidebar({ owner, repo, onRepoChange, onEntryClick }: SidebarProps) {
+export function Sidebar({ owner, repo, onRepoChange, onEntryClick, onAnalyzeSubFunctions }: SidebarProps) {
   const [inputValue, setInputValue] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -64,9 +66,15 @@ export function Sidebar({ owner, repo, onRepoChange, onEntryClick }: SidebarProp
   }
 
   return (
-    <div className="w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex flex-col">
+    <div className="h-full flex flex-col">
+      {/* 面板标题栏 */}
+      <div className="panel-header">
+        <History className="panel-header-icon" />
+        <h2 className="panel-header-title">分析日志</h2>
+      </div>
+
       {/* 输入区域 */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex-shrink-0 p-3 border-b border-[var(--color-border)]">
         <form onSubmit={handleSubmit} className="space-y-2">
           <Input
             type="text"
@@ -90,7 +98,7 @@ export function Sidebar({ owner, repo, onRepoChange, onEntryClick }: SidebarProp
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <Search className="w-4 h-4 mr-1" />
+                <Search className="w-4 h-4" />
                 分析
               </>
             )}
@@ -99,22 +107,24 @@ export function Sidebar({ owner, repo, onRepoChange, onEntryClick }: SidebarProp
       </div>
 
       {/* 当前仓库信息 */}
-      <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400">当前仓库</p>
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+      <div className="flex-shrink-0 p-3 border-b border-[var(--color-border)]">
+        <p className="text-xs text-[var(--color-text-muted)]">当前仓库</p>
+        <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
           {owner}/{repo}
         </p>
       </div>
 
       {/* 工作日志面板 */}
-      <AnalysisLog
-        entries={entries}
-        isExpanded={isPanelExpanded}
-        expandedJsonId={expandedJsonId}
-        onTogglePanel={togglePanel}
-        onToggleJson={toggleJson}
-        onClear={clearLogs}
-      />
+      <div className="flex-shrink-0">
+        <AnalysisLog
+          entries={entries}
+          isExpanded={isPanelExpanded}
+          expandedJsonId={expandedJsonId}
+          onTogglePanel={togglePanel}
+          onToggleJson={toggleJson}
+          onClear={clearLogs}
+        />
+      </div>
 
       {/* AI项目分析面板 */}
       <div className="flex-1 overflow-auto">
@@ -122,6 +132,7 @@ export function Sidebar({ owner, repo, onRepoChange, onEntryClick }: SidebarProp
           owner={owner}
           repo={repo}
           onEntryClick={onEntryClick}
+          onAnalyzeSubFunctions={onAnalyzeSubFunctions}
         />
       </div>
     </div>

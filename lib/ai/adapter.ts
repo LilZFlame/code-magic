@@ -24,6 +24,14 @@ export interface AIProviderAdapter {
 export type AIProviderType = 'openai' | 'anthropic' | 'siliconflow' | 'mock'
 
 /**
+ * AI分析用途类型
+ */
+export type AIAnalysisPurpose =
+  | 'project-analysis'    // 项目分析（需要较强模型）
+  | 'entrypoint-analysis' // 入口研判（需要较强模型）
+  | 'subfunction-analysis' // 子函数分析（可用经济模型）
+
+/**
  * AI分析配置
  */
 export interface AIConfig {

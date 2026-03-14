@@ -1,5 +1,7 @@
 // AI分析结果类型定义
 
+import { SubFunctionAnalysisResult } from './sub-function'
+
 export interface AIAnalysisResult {
   /** 分析状态 */
   status: 'success' | 'error'
@@ -22,6 +24,12 @@ export interface AnalysisData {
   projectType: ProjectType
   /** 分析置信度 (0-1) */
   confidence: number
+  /** 确认的入口文件 */
+  confirmedEntryPoint?: AnalyzedEntryPoint
+  /** 所有研判过的入口文件 */
+  analyzedEntryPoints?: AnalyzedEntryPoint[]
+  /** 子函数分析结果 */
+  subFunctions?: SubFunctionAnalysisResult
 }
 
 export interface TechStackTag {
@@ -102,4 +110,34 @@ export const CATEGORY_CONFIG: Record<TechStackCategory, { color: string; label: 
   platform: { color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300', label: '平台' },
   database: { color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300', label: '数据库' },
   other: { color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', label: '其他' },
+}
+
+/**
+ * 入口研判数据
+ */
+export interface EntryPointAnalysisData {
+  /** 是否确认为真实入口 */
+  isConfirmedEntry: boolean
+  /** 置信度 (0-1) */
+  confidence: number
+  /** 研判理由 */
+  reasoning: string
+  /** 入口类型 */
+  entryType: EntryPointType
+  /** 入口功能描述 */
+  functionality: string
+  /** 依赖的主要模块 */
+  mainDependencies?: string[]
+  /** 启动方式建议 */
+  startupHint?: string
+}
+
+/**
+ * 带研判状态的入口点
+ */
+export interface AnalyzedEntryPoint extends EntryPoint {
+  /** 是否已经过研判验证 */
+  isVerified: boolean
+  /** 研判详情 */
+  analysisData?: EntryPointAnalysisData
 }

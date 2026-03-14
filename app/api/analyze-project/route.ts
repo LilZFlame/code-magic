@@ -4,6 +4,7 @@ import { extractCodeFiles, countLanguageDistribution } from '@/lib/utils/code-fi
 import { createAIAdapter, getAIConfigFromEnv } from '@/lib/ai'
 import { AIAnalysisResult } from '@/lib/types/ai-analysis'
 import { LogEntry, AnalyzeResponseWithLogs } from '@/lib/types/log'
+import { analyzeEntryPoints } from '@/lib/entrypoint-analyzer'
 
 // 生成唯一ID
 function generateId(): string {
@@ -26,10 +27,10 @@ const ANALYSIS_PROMPT = `你是一个代码项目分析专家。请分析以下G
   "primaryLanguage": "主要编程语言（如 TypeScript, Python, Java 等）",
   "languageDistribution": {"语言名": 文件数量},
   "techStack": [
-    {"name": "技术名称", "category": "类别", "confidence": 0.95}
+    {"name": "技术名称", "category": "类别", "description": "简短中文描述", "confidence": 0.95}
   ],
   "entryPoints": [
-    {"path": "文件路径", "type": "入口类型", "description": "说明", "confidence": 0.9}
+    {"path": "文件路径", "type": "入口类型", "description": "中文描述该入口文件的作用", "confidence": 0.9}
   ],
   "projectType": "项目类型",
   "confidence": 0.85
@@ -42,6 +43,8 @@ const ANALYSIS_PROMPT = `你是一个代码项目分析专家。请分析以下G
 4. projectType必须是以下之一: web-frontend, web-backend, fullstack, cli-tool, library, mobile-app, desktop-app, api-service, system, embedded, data-science, other
 5. confidence是0-1之间的数值，表示分析结果的置信度
 6. 请根据文件名和目录结构推断技术栈，例如：看到 next.config.js 表示使用 Next.js，看到 tailwind.config.js 表示使用 TailwindCSS
+7. entryPoints中的description必须使用中文描述该入口文件的作用
+8. techStack中的name保持英文，但description必须使用简短的中文描述该技术的作用
 `
 
 export async function POST(request: NextRequest) {
@@ -188,7 +191,7 @@ export async function POST(request: NextRequest) {
     const adapter = createAIAdapter(config)
     const analysisResult = await adapter.analyze(prompt)
 
-    // 记录AI响应
+    // 记录AI响应（包含提示词和响应详情）
     if (analysisResult.status === 'success') {
       logs.push({
         id: generateId(),
@@ -196,8 +199,10 @@ export async function POST(request: NextRequest) {
         type: 'success',
         category: 'ai',
         message: 'AI分析完成',
-        details: {
-          response: analysisResult.data,
+        aiDetails: {
+          prompt: prompt.slice(0, 2000) + (prompt.length > 2000 ? '...(已截断)' : ''),
+          response: JSON.stringify(analysisResult.data, null, 2),
+          model: config.model,
         },
       })
     } else {
@@ -207,8 +212,10 @@ export async function POST(request: NextRequest) {
         type: 'error',
         category: 'ai',
         message: `AI分析失败: ${analysisResult.error}`,
-        details: {
-          response: analysisResult,
+        aiDetails: {
+          prompt: prompt.slice(0, 2000) + (prompt.length > 2000 ? '...(已截断)' : ''),
+          response: analysisResult.error || '未知错误',
+          model: config.model,
         },
       })
     }
@@ -216,6 +223,31 @@ export async function POST(request: NextRequest) {
     // 7. 补充语言分布数据（确保数据完整）
     if (analysisResult.status === 'success' && analysisResult.data) {
       analysisResult.data.languageDistribution = languageDistribution
+
+      // 8. 入口文件研判
+      if (analysisResult.data.entryPoints && analysisResult.data.entryPoints.length > 0) {
+        logs.push({
+          id: generateId(),
+          timestamp: new Date().toISOString(),
+          type: 'info',
+          category: 'entrypoint',
+          message: '开始入口文件研判...',
+        })
+
+        const entryPointResult = await analyzeEntryPoints({
+          owner,
+          repo,
+          entryPoints: analysisResult.data.entryPoints,
+          primaryLanguage: analysisResult.data.primaryLanguage,
+          projectType: analysisResult.data.projectType,
+          logs,
+        })
+
+        if (entryPointResult.confirmedEntry) {
+          analysisResult.data.confirmedEntryPoint = entryPointResult.confirmedEntry
+          analysisResult.data.analyzedEntryPoints = entryPointResult.analyzedEntries
+        }
+      }
     }
 
     return NextResponse.json({

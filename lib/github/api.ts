@@ -3,9 +3,9 @@ import { buildNestedTree } from './parser'
 import { TreeNode } from './types'
 
 // 创建 Octokit 实例
-// 可以配置 GitHub Token 来提高请求限制
+// 配置 GitHub Token 来提高请求限制
 const octokit = new Octokit({
-  // auth: process.env.GITHUB_TOKEN,
+  auth: process.env.GITHUB_TOKEN,
 })
 
 /**

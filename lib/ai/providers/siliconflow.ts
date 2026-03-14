@@ -40,7 +40,9 @@ export class SiliconFlowAdapter implements AIProviderAdapter {
       })
 
       if (!response.ok) {
-        throw new Error(`硅基流动 API错误: ${response.status}`)
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.error?.message || errorData.message || `HTTP ${response.status}`
+        throw new Error(`硅基流动 API错误: ${errorMessage}`)
       }
 
       const data = await response.json()

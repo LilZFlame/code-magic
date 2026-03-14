@@ -77,24 +77,25 @@ export function RepoInputForm() {
 
       <Button
         type="submit"
+        variant="cta"
         size="lg"
         className="w-full"
         disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
             分析中...
           </>
         ) : (
           <>
-            <Search className="w-5 h-5 mr-2" />
+            <Search className="w-5 h-5" />
             开始分析
           </>
         )}
       </Button>
 
-      <p className="text-xs text-center text-gray-400 dark:text-gray-500">
+      <p className="text-xs text-center text-[var(--color-text-muted)]">
         支持格式：github.com/owner/repo 或 owner/repo
       </p>
     </form>

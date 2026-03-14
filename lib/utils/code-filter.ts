@@ -2,6 +2,7 @@
 
 import { TreeNode } from '@/lib/github/types'
 import { isBinaryFile } from './language-detector'
+import { normalizePath, getFileName } from './path'
 
 /**
  * 需要排除的目录
@@ -122,7 +123,7 @@ export function shouldAnalyzeFile(path: string, filename: string): boolean {
   }
 
   // 排除特定目录
-  const pathParts = path.split('/')
+  const pathParts = normalizePath(path).split('/')
   if (pathParts.some(part => EXCLUDED_DIRS.includes(part))) {
     return false
   }
@@ -181,7 +182,7 @@ export function countLanguageDistribution(files: string[]): Record<string, numbe
   const distribution: Record<string, number> = {}
 
   for (const file of files) {
-    const filename = file.split('/').pop() || ''
+    const filename = getFileName(file)
     const ext = filename.split('.').pop()?.toLowerCase() || ''
 
     // 简化的语言映射

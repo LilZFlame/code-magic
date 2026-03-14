@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
-/* 自定义颜色变量 */
+/* ==================== 设计变量 ==================== */
 @theme {
+  /* 主色调 */
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
   --color-primary-200: #bae6fd;
@@ -12,98 +13,495 @@
   --color-primary-700: #0369a1;
   --color-primary-800: #075985;
   --color-primary-900: #0c4a6e;
+
+  /* CTA 绿色 */
+  --color-cta: #22c55e;
+  --color-cta-hover: #16a34a;
+
+  /* 动画时长 */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* 动画曲线 */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* 圆角 */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
 }
 
+/* ==================== 亮色主题 ==================== */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 250, 250, 250;
-  --background-end-rgb: 245, 245, 245;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-hover: #cbd5e1;
+
+  /* Glass 效果 */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  /* 悬浮阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 15, 23, 42;
-    --background-end-rgb: 30, 41, 59;
+/* ==================== 暗色主题 ==================== */
+.dark {
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #64748b;
+  --color-border: #334155;
+  --color-border-hover: #475569;
+
+  /* Glass 效果 */
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+  /* 悬浮阴影 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* ==================== 基础样式 ==================== */
+body {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  min-height: 100vh;
+  transition: background-color var(--duration-normal) var(--ease-out),
+              color var(--duration-normal) var(--ease-out);
+}
+
+/* ==================== Glassmorphism 效果 ==================== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== 过渡动画 ==================== */
+.transition-theme {
+  transition: background-color var(--duration-normal) var(--ease-out),
+              border-color var(--duration-normal) var(--ease-out),
+              color var(--duration-normal) var(--ease-out);
+}
+
+.transition-fast {
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.transition-normal {
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+/* Hover 效果 */
+.hover-lift {
+  transition: transform var(--duration-normal) var(--ease-out),
+              box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.hover-scale {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* ==================== 入场动画 ==================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  min-height: 100vh;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-/* 代码高亮容器样式 */
+.animate-fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out);
+}
+
+.animate-slide-up {
+  animation: slideUp var(--duration-normal) var(--ease-out);
+}
+
+.animate-slide-in {
+  animation: slideIn var(--duration-normal) var(--ease-out);
+}
+
+/* ==================== 减少动画偏好 ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==================== 代码高亮容器样式 ==================== */
 .shiki-container {
   overflow-x: auto;
 }
 
 .shiki-container pre {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   margin: 0;
-  border-radius: 0.5rem;
+  border-radius: 0;
   counter-reset: line;
+  line-height: 1.5;
 }
 
 .shiki-container code {
   display: block;
+  line-height: 1.5;
 }
 
-/* 文件树样式 */
+/* 代码行高调整 */
+.shiki-container .line-wrapper {
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+
+/* ==================== 文件树样式 ==================== */
 .file-tree-item {
   cursor: pointer;
   user-select: none;
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .file-tree-item:hover {
-  background-color: rgb(243 244 246);
-}
-
-.dark .file-tree-item:hover {
-  background-color: rgb(31 41 55);
+  background-color: var(--color-bg-tertiary);
 }
 
 .file-tree-item.selected {
-  background-color: rgb(239 246 255);
+  background-color: var(--color-primary-100);
 }
 
 .dark .file-tree-item.selected {
-  background-color: rgb(30 58 138 / 0.3);
+  background-color: rgba(30, 58, 138, 0.3);
 }
 
-/* 滚动条样式 */
+/* ==================== 滚动条样式 ==================== */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--color-border) transparent;
+}
+
+/* WebKit (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: rgb(243 244 246);
-}
-
-.dark ::-webkit-scrollbar-track {
-  background-color: rgb(31 41 55);
+  background-color: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgb(209 213 219);
+  background-color: transparent;
   border-radius: 9999px;
+  transition: background-color 0.3s ease;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgb(75 85 99);
+*:hover::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(156 163 175);
+  background-color: var(--color-border-hover);
 }
 
-.dark ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(107 114 128);
+/* 滚动时也显示滚动条 */
+*:active::-webkit-scrollbar-thumb,
+*:focus::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+}
+
+/* ==================== 霓虹效果 ==================== */
+@theme {
+  /* 霓虹颜色 */
+  --color-neon-cyan: #00ffff;
+  --color-neon-magenta: #ff00ff;
+  --color-neon-green: #00ff88;
+  --color-neon-purple: #bf00ff;
+}
+
+/* 霓虹边框 - 代码面板工具栏 */
+.neon-border {
+  position: relative;
+}
+
+.neon-border::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-neon-cyan) 20%,
+    var(--color-neon-magenta) 50%,
+    var(--color-neon-cyan) 80%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+.dark .neon-border::before {
+  opacity: 0.8;
+  animation: neon-border-pulse 3s ease-in-out infinite;
+}
+
+@keyframes neon-border-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* 霓虹发光效果 - 代码区域 */
+.neon-glow {
+  box-shadow:
+    0 0 5px rgba(0, 255, 255, 0.1),
+    0 0 20px rgba(0, 255, 255, 0.05);
+}
+
+.dark .neon-glow {
+  box-shadow:
+    inset 0 0 30px rgba(0, 255, 255, 0.03),
+    0 0 20px rgba(0, 255, 255, 0.08),
+    0 0 40px rgba(255, 0, 255, 0.04);
+}
+
+/* 代码面板容器 */
+.code-panel-dark {
+  background: linear-gradient(135deg, #0a0a12 0%, #0f1629 50%, #0a0a12 100%);
+}
+
+.code-panel-light {
+  background: linear-gradient(135deg, #fafbfc 0%, #f0f4f8 50%, #fafbfc 100%);
+}
+
+/* 代码行号样式 */
+.shiki-container .line-number {
+  display: inline-block;
+  width: 3rem;
+  text-align: right;
+  padding-right: 1rem;
+  margin-right: 0.5rem;
+  color: rgba(100, 116, 139, 0.5);
+  user-select: none;
+  border-right: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+.dark .shiki-container .line-number {
+  color: rgba(0, 255, 255, 0.3);
+  border-right-color: rgba(0, 255, 255, 0.15);
+}
+
+/* 霓虹工具栏按钮 */
+.neon-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.neon-btn:hover::after {
+  width: 150%;
+  height: 150%;
+}
+
+/* ==================== 面板分隔条样式 ==================== */
+/* react-split-pane v3.2.0 样式 */
+.split-pane {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.split-pane-pane {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.split-pane-divider {
+  background: transparent;
+  position: relative;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.split-pane-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 40px;
+  background: var(--color-border);
+  border-radius: 2px;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.split-pane-divider:hover::before {
+  opacity: 1;
+  background: var(--color-primary-500);
+  height: 60px;
+}
+
+/* 深色模式分隔条发光效果 */
+.dark .split-pane-divider:hover::before {
+  box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
+}
+
+.split-pane-divider[data-direction="horizontal"] {
+  width: 10px;
+  cursor: col-resize;
+}
+
+.split-pane-divider[data-direction="vertical"] {
+  height: 12px;
+  cursor: row-resize;
+}
+
+/* ==================== 面板标题栏样式 ==================== */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  height: 40px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.panel-header-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+}
+
+.panel-header-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* 深色模式面板标题栏 */
+.dark .panel-header {
+  background: linear-gradient(180deg, rgba(30, 41, 59, 1) 0%, rgba(30, 41, 59, 0.8) 100%);
+}
+
+.dark .panel-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-primary-500), transparent);
+  opacity: 0.3;
+}
+
+/* ==================== 面板卡片容器 ==================== */
+.panel-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.panel-card:hover {
+  border-color: var(--color-border-hover);
+}
+
+.dark .panel-card {
+  background: var(--color-bg-secondary);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .panel-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }

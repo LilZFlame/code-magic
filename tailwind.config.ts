@@ -6,6 +6,7 @@ const config: Config = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -21,6 +22,33 @@ const config: Config = {
           800: '#075985',
           900: '#0c4a6e',
         },
+        cta: {
+          DEFAULT: '#22c55e',
+          hover: '#16a34a',
+        },
+        surface: {
+          primary: 'var(--color-bg-primary)',
+          secondary: 'var(--color-bg-secondary)',
+          tertiary: 'var(--color-bg-tertiary)',
+        },
+      },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
+      },
+      transitionDuration: {
+        fast: '150ms',
+        normal: '250ms',
+        slow: '350ms',
+      },
+      transitionTimingFunction: {
+        'ease-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'ease-in-out': 'cubic-bezier(0.65, 0, 0.35, 1)',
+      },
+      boxShadow: {
+        'glass': 'var(--glass-shadow)',
       },
     },
   },
